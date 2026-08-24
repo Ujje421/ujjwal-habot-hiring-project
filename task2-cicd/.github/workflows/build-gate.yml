@@ -1,0 +1,102 @@
+# Name: Ujjwal [Last Name]
+# Contact: [Email / LinkedIn / GitHub]
+
+name: Fail-Closed Security Gate
+
+on:
+  push:
+    branches: [ "main", "staging" ]
+  pull_request:
+    branches: [ "main", "staging" ]
+
+permissions: read-all
+
+env:
+  # Using GitHub Secrets to prevent hardcoded credentials
+  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+jobs:
+  django-lint:
+    name: Django Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install Quality Tools
+        run: pip install flake8 black isort
+      - name: Flake8 Linter
+        run: flake8 . --max-line-length=88 || (echo "[GATE FAILED] Django formatting non-compliant. Build quarantined." && exit 1)
+      - name: Black Formatter Check
+        run: black --check . || (echo "[GATE FAILED] Django formatting non-compliant. Build quarantined." && exit 1)
+      - name: Isort Check
+        run: isort --check-only . || (echo "[GATE FAILED] Django formatting non-compliant. Build quarantined." && exit 1)
+
+  django-security:
+    name: Django SAST
+    runs-on: ubuntu-latest
+    needs: django-lint
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      - name: Install Security Tools
+        run: pip install bandit safety
+      - name: Bandit Security Scan
+        run: bandit -r . -ll || (echo "[GATE FAILED] Security vulnerability detected. Build quarantined." && exit 1)
+      - name: Dependency Vulnerability Check
+        run: safety check || (echo "[GATE FAILED] Security vulnerability detected. Build quarantined." && exit 1)
+
+  react-lint:
+    name: React Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Run ESLint
+        run: npx eslint . --ext .js,.jsx,.ts,.tsx || (echo "[GATE FAILED] React formatting non-compliant. Build quarantined." && exit 1)
+      - name: Disallow .env commits
+        run: |
+          if find . -name "*.env" -type f | grep -q .; then
+            echo "[GATE FAILED] .env file detected in repository. Build quarantined."
+            exit 1
+          fi
+
+  secrets-scan:
+    name: Deep Secrets Scan (TruffleHog)
+    runs-on: ubuntu-latest
+    needs: [django-security, react-lint]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+      - name: Quarantine Protocol
+        if: failure()
+        run: |
+          echo "[QUARANTINE TRIGGERED] Hardcoded credential detected. Commit blocked. Notify security team."
+          echo "Secret scan failed on $(date)" > quarantine-report.txt
+          exit 1
+      - name: Upload Quarantine Report
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: quarantine-report
+          path: quarantine-report.txt
+
+  deploy-gate:
+    name: Deployment Gate
+    runs-on: ubuntu-latest
+    needs: secrets-scan
+    steps:
+      - name: Issue Deployment Clearance
+        run: echo "[GATE PASSED] All checks cleared. Safe to deploy."

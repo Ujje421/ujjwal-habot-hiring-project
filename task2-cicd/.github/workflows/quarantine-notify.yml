@@ -1,0 +1,16 @@
+# Name: Ujjwal [Last Name]
+# Contact: [Email / LinkedIn / GitHub]
+
+name: Quarantine Notification
+on:
+  workflow_run:
+    workflows: ["Fail-Closed Security Gate"]
+    types:
+      - completed
+jobs:
+  notify-security:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Send Slack Alert
+        run: echo "Sending quarantine alert to security team..."

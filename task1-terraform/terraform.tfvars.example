@@ -1,0 +1,9 @@
+# Name: Ujjwal [Last Name]
+# Contact: [Email / LinkedIn / GitHub]
+
+project_id        = "habot-production-123"
+region            = "asia-south1"
+bucket_name       = "d0-raw-landing-habot"
+bq_dataset_id     = "d1_staged_enforced"
+kms_key_id        = "projects/habot-production-123/locations/asia-south1/keyRings/habot-keyring/cryptoKeys/bucket-key"
+pipeline_sa_email = "pipeline-sa@habot-production-123.iam.gserviceaccount.com"

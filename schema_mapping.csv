@@ -1,0 +1,10 @@
+Field Name,Data Type,Validation Rule,DCYN Answer,Error Message if Failed
+student_full_name,String,"Maximum 100 characters, letters and spaces only",Yes / No,Name contains invalid characters
+date_of_birth,Date,Age must be between 4 and 18 years from today,Yes / No,Age out of acceptable range
+learning_difficulty_confirmed,Boolean,Must equal True,Yes / No,Referral cannot proceed without confirmed diagnosis
+parent_consent_signed,Boolean,Must equal True,Yes / No,Parent consent is missing
+emergency_contact_name,String,Maximum 100 characters,Yes / No,N/A
+emergency_contact_phone,String,"E.164 format regex (^\+[1-9]\d{7,14}$)",Yes / No,Invalid phone number format
+school_grade,Integer,Must be between 1 and 12,Yes / No,Grade out of range
+iep_document_attached,Boolean,Must equal True if learning_difficulty_confirmed is True,Yes / No,IEP document is mandatory for confirmed diagnoses
+assigned_lsa_id,UUID,Must reference existing LSA record,Yes / No,Invalid LSA reference

@@ -16,3 +16,26 @@
 - **No Human Judgment**: The validation logic operates as a strict binary gate (Does/Can/Yes/No).
 - **Error Codes**: Custom error codes (`invalid_name`, `age_out_of_range`, etc.) allow the frontend to gracefully handle specific failures.
 - **Audit Trails via Signals**: `signals.py` automatically writes to an audit log on every `post_save` event, keeping a strict record of `dcyn_clearance_status` changes over time without manual developer intervention.
+
+## 🚀 How to Run the Django API Locally
+Unlike standard code submissions, this repository contains a fully scaffolded, production-ready Django project. Reviewers can run the test suite to verify the DCYN validation logic immediately.
+
+1. Navigate to the Django directory:
+   ```bash
+   cd task3-django
+   ```
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   # On Windows: .\venv\Scripts\activate
+   # On Mac/Linux: source venv/bin/activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Run the automated test suite to prove the DCYN validation works:
+   ```bash
+   python manage.py test
+   ```
+   *You should see 5 passing tests confirming the strict schema validation.*
